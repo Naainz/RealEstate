@@ -1,0 +1,52 @@
+body {
+    font-family: Satoshi, sans-serif;
+    margin: 0;
+    padding: 0;
+  }
+  
+  header {
+    background-color: #0044cc;
+    color: white;
+    padding: 1rem;
+    text-align: center;
+  }
+  
+  .search-section {
+    padding: 1rem;
+    background-color: #f8f8f8;
+  }
+  
+  .search-form {
+    display: flex;
+    justify-content: center;
+    gap: 0.5rem;
+  }
+  
+  .search-form input {
+    padding: 0.5rem;
+    width: 300px;
+  }
+  
+  .search-form button {
+    padding: 0.5rem 1rem;
+    background-color: #0044cc;
+    color: white;
+    border: none;
+    cursor: pointer;
+  }
+  
+  .property-list {
+    padding: 2rem;
+  }
+  
+  .property-list ul {
+    list-style: none;
+    padding: 0;
+  }
+  
+  .property-list li {
+    padding: 1rem;
+    margin-bottom: 1rem;
+    border: 1px solid #ddd;
+  }
+  
