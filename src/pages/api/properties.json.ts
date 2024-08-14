@@ -2,7 +2,7 @@ import type { APIRoute } from 'astro';
 
 export const GET: APIRoute = async ({ url }) => {
   const location = url.searchParams.get('location');
-  const apiKey = import.meta.env.RENTCAST_API_KEY;
+  const apiKey = import.meta.env.REALTY_MOLE_API_KEY;
 
   if (!location || location.trim() === '') {
     return new Response(JSON.stringify({ error: 'Missing location parameter' }), {
@@ -11,34 +11,34 @@ export const GET: APIRoute = async ({ url }) => {
     });
   }
 
-  const requestUrl = `https://api.rentcast.io/v1/rent-estimates?address=${encodeURIComponent(location)}`;
+  const requestUrl = `https://realty-mole-property-api.p.rapidapi.com/rentalListings?location=${encodeURIComponent(location)}`;
   console.log('Request URL:', requestUrl);
 
   try {
     const response = await fetch(requestUrl, {
       method: 'GET',
       headers: {
-        'X-RentCast-API-Key': apiKey,
+        'X-RapidAPI-Host': 'realty-mole-property-api.p.rapidapi.com',
+        'X-RapidAPI-Key': apiKey,
       },
     });
-
-    if (response.status === 404) {
-      throw new Error('No properties found for the given location.');
-    }
 
     if (!response.ok) {
       throw new Error(`Failed to fetch property data: ${response.statusText}`);
     }
 
     const data = await response.json();
-    if (!data.rentals || data.rentals.length === 0) {
-      throw new Error('No rental properties found.');
+    if (!data.length) {
+      return new Response(JSON.stringify({ error: 'No rental properties found.' }), {
+        status: 404,
+        headers: { 'Content-Type': 'application/json' },
+      });
     }
 
-    const listings = data.rentals.map((rental: any) => ({
+    const listings = data.map((rental: any) => ({
       title: rental.address,
-      description: `Estimated Rent: $${rental.rent} per month`,
-      image: rental.image_url || 'https://via.placeholder.com/150',
+      description: `Estimated Rent: $${rental.price} per month`,
+      image: rental.image || 'https://via.placeholder.com/150',
       link: `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(rental.address)}`,
     }));
 

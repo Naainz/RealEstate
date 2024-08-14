@@ -1,15 +1,15 @@
 ---
 import Layout from '../layouts/Layout.astro';
 
-let properties = [];
-let hasSearched = false; // Ensure this is defined globally
+let properties: any[] = [];
+let hasSearched = false;
 ---
 
 <Layout>
   <section class="py-8 px-4 flex justify-center">
     <div id="search-container" class="bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 p-6 rounded-lg shadow-md w-full max-w-3xl text-center transition-opacity duration-500">
-      <h1 class="text-3xl font-bold mb-4">Find Your Dream Property</h1>
-      <p class="text-lg text-gray-700 dark:text-gray-300 mb-4">Search from a variety of properties available across different locations. Enter a location below to get started.</p>
+      <h1 class="text-3xl font-bold mb-4">Find Your Dream Rental Property</h1>
+      <p class="text-lg text-gray-700 dark:text-gray-300 mb-4">Search from a variety of rental properties available across different locations. Enter a location below to get started.</p>
       
       <form id="search-form" class="search-form flex justify-center gap-4 mb-1">
         <input 
@@ -29,11 +29,30 @@ let hasSearched = false; // Ensure this is defined globally
       <i class="fas fa-spinner fa-spin text-4xl text-blue-500"></i>
       <p class="mt-4 text-xl transition-opacity duration-500" id="loading-text">Fetching rental properties...</p>
     </div>
+    
+    {hasSearched && properties.length > 0 && (
+      <div class="grid grid-cols-1 gap-6 mt-8">
+        {properties.map(property => (
+          <a href={property.link} class="flex items-center bg-white dark:bg-gray-800 p-4 rounded-lg shadow-md transition-transform transform hover:scale-105">
+            <img src={property.image} alt={property.title} class="w-1/3 h-auto object-cover rounded-lg" />
+            <div class="ml-4">
+              <h2 class="text-xl font-bold text-gray-900 dark:text-gray-100">{property.title}</h2>
+              <p class="text-md text-gray-700 dark:text-gray-300 mt-2">{property.description}</p>
+            </div>
+          </a>
+        ))}
+      </div>
+    )}
+
+    {hasSearched && properties.length === 0 && (
+      <p class="text-center text-gray-600 dark:text-gray-400 mt-8">No rental properties found for your search.</p>
+    )}
   </section>
 
   <script>
     let isLoading = false;
     let hasSearched = false;
+	let properties = [];
 
     async function fetchProperties(location) {
       isLoading = true;
@@ -42,7 +61,7 @@ let hasSearched = false; // Ensure this is defined globally
         const data = await response.json();
 
         if (response.ok) {
-          properties = data.listings || [];
+		properties = data.listings || [];
         } else {
           console.error('Error fetching properties:', data.error);
         }
@@ -50,7 +69,7 @@ let hasSearched = false; // Ensure this is defined globally
         console.error('Fetch error:', error);
       } finally {
         isLoading = false;
-        hasSearched = true; // Ensure hasSearched is set to true after the fetch is complete
+        hasSearched = true;
       }
     }
 
@@ -66,14 +85,12 @@ let hasSearched = false; // Ensure this is defined globally
       const searchContainer = document.getElementById('search-container');
       const loadingDiv = document.getElementById('loading');
 
-      // Start the fade-out transition
       searchContainer.classList.add('opacity-0');
 
-      // Wait for the transition to complete before removing the container and showing the loading screen
       setTimeout(() => {
         searchContainer.remove();
         loadingDiv.classList.remove('hidden');
-        fetchProperties(locationInputValue); // Make the API request after the transition
+        fetchProperties(locationInputValue);
       }, 500);
     });
   </script>
