@@ -6,13 +6,20 @@ import Layout from '../layouts/Layout.astro';
   <section class="py-8 px-4 flex justify-center">
     <div id="search-container" class="bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 p-6 rounded-lg shadow-md w-full max-w-3xl text-center transition-opacity duration-500">
       <h1 class="text-3xl font-bold mb-4">Generate Property Data</h1>
-      <p class="text-lg text-gray-700 dark:text-gray-300 mb-4">Enter a full address, city, or any location below to generate property descriptions using AI.</p>
+      <p class="text-lg text-gray-700 dark:text-gray-300 mb-4">Enter a city and state below to generate property descriptions using AI.</p>
       
       <form id="search-form" class="search-form flex justify-center gap-4 mb-1">
         <input 
           type="text" 
-          id="location-input" 
-          placeholder="Enter full address or location" 
+          id="city-input" 
+          placeholder="Enter city" 
+          required 
+          class="px-4 py-2 border rounded w-full bg-gray-200 dark:bg-gray-700 border-gray-300 dark:border-gray-600 text-gray-900 dark:text-gray-100" 
+        />
+        <input 
+          type="text" 
+          id="state-input" 
+          placeholder="Enter state" 
           required 
           class="px-4 py-2 border rounded w-full bg-gray-200 dark:bg-gray-700 border-gray-300 dark:border-gray-600 text-gray-900 dark:text-gray-100" 
         />
@@ -52,10 +59,11 @@ import Layout from '../layouts/Layout.astro';
 
     document.getElementById('search-form').addEventListener('submit', async (event) => {
       event.preventDefault();
-      const locationInputValue = document.getElementById('location-input').value;
+      const cityInputValue = document.getElementById('city-input').value;
+      const stateInputValue = document.getElementById('state-input').value;
 
-      if (!locationInputValue) {
-        console.error("Location input is empty");
+      if (!cityInputValue || !stateInputValue) {
+        console.error("City or state input is empty");
         return;
       }
 
@@ -72,12 +80,12 @@ import Layout from '../layouts/Layout.astro';
       }, 500);
 
       try {
-        const response = await fetch(`/api/properties.json?location=${encodeURIComponent(locationInputValue)}`);
+        const response = await fetch(`/api/properties.json?city=${encodeURIComponent(cityInputValue)}&state=${encodeURIComponent(stateInputValue)}`);
         const data = await response.json();
 
         if (response.ok && data.output) {
           loadingDiv.classList.add('hidden');
-          outputDiv.innerHTML = ''; // Clear previous content
+          outputDiv.innerHTML = ''; 
           const entries = data.output.split('---').map(entry => entry.trim());
 
           entries.forEach(entry => {
