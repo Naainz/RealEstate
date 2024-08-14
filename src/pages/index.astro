@@ -59,7 +59,18 @@ import Layout from '../layouts/Layout.astro';
 
     const leafletScript = document.createElement('script');
     leafletScript.src = 'https://unpkg.com/leaflet@1.7.1/dist/leaflet.js';
-    leafletScript.onload = function() {
+    document.head.appendChild(leafletScript);
+
+    const geocoderCss = document.createElement('link');
+    geocoderCss.rel = 'stylesheet';
+    geocoderCss.href = 'https://unpkg.com/leaflet-control-geocoder/dist/Control.Geocoder.css';
+    document.head.appendChild(geocoderCss);
+
+    const geocoderScript = document.createElement('script');
+    geocoderScript.src = 'https://unpkg.com/leaflet-control-geocoder/dist/Control.Geocoder.js';
+    document.head.appendChild(geocoderScript);
+
+    geocoderScript.onload = leafletScript.onload = function() {
     const images = [
       "https://page-assets.foxtons.co.uk/img/masthead/interiors_kitchen.jpg",
       "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcRJcX2nqVi4Cx5MIP78R0RsdNWVgHPlbqXYUA&s",
@@ -79,7 +90,7 @@ import Layout from '../layouts/Layout.astro';
       "https://justdoproperty.co.uk/wp-content/uploads/2020/05/interiordesign.png"
     ];
 
-      document.getElementById('search-form').addEventListener('submit', async (event) => {
+	document.getElementById('search-form').addEventListener('submit', async (event) => {
         event.preventDefault();
         const cityInputValue = document.getElementById('city-input').value;
         const stateInputValue = document.getElementById('state-input').value;
@@ -152,24 +163,12 @@ import Layout from '../layouts/Layout.astro';
           attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
         }).addTo(map);
 
-        const searchInput = document.getElementById('map-search-input');
         const searchControl = L.Control.geocoder({
           defaultMarkGeocode: false
-        })
-        .on('markgeocode', function(e) {
-          const bbox = e.geocode.bbox;
-          const poly = L.polygon([
-            bbox.getSouthEast(),
-            bbox.getNorthEast(),
-            bbox.getNorthWest(),
-            bbox.getSouthWest()
-          ]).addTo(map);
-          map.fitBounds(poly.getBounds());
-        })
-        .addTo(map);
+        }).addTo(map);
 
-        searchInput.addEventListener('change', function() {
-          searchControl.geocode(searchInput.value);
+        document.getElementById('map-search-input').addEventListener('change', function() {
+          searchControl.markGeocode(searchControl.options.geocoder.geocode(document.getElementById('map-search-input').value));
         });
 
         let selectedRegion = null;
@@ -197,7 +196,5 @@ import Layout from '../layouts/Layout.astro';
         });
       });
     };
-
-    document.head.appendChild(leafletScript);
   </script>
 </Layout>
