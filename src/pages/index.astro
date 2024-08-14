@@ -52,6 +52,14 @@ import Layout from '../layouts/Layout.astro';
   </div>
 
   <script>
+    const leafletCss = document.createElement('link');
+    leafletCss.rel = 'stylesheet';
+    leafletCss.href = 'https://unpkg.com/leaflet@1.7.1/dist/leaflet.css';
+    document.head.appendChild(leafletCss);
+
+    const leafletScript = document.createElement('script');
+    leafletScript.src = 'https://unpkg.com/leaflet@1.7.1/dist/leaflet.js';
+    leafletScript.onload = function() {
     const images = [
       "https://page-assets.foxtons.co.uk/img/masthead/interiors_kitchen.jpg",
       "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcRJcX2nqVi4Cx5MIP78R0RsdNWVgHPlbqXYUA&s",
@@ -71,121 +79,125 @@ import Layout from '../layouts/Layout.astro';
       "https://justdoproperty.co.uk/wp-content/uploads/2020/05/interiordesign.png"
     ];
 
-    document.getElementById('search-form').addEventListener('submit', async (event) => {
-      event.preventDefault();
-      const cityInputValue = document.getElementById('city-input').value;
-      const stateInputValue = document.getElementById('state-input').value;
+      document.getElementById('search-form').addEventListener('submit', async (event) => {
+        event.preventDefault();
+        const cityInputValue = document.getElementById('city-input').value;
+        const stateInputValue = document.getElementById('state-input').value;
 
-      if (!cityInputValue || !stateInputValue) {
-        console.error("City or state input is empty");
-        return;
-      }
+        if (!cityInputValue || !stateInputValue) {
+          console.error("City or state input is empty");
+          return;
+        }
 
-      const searchContainer = document.getElementById('search-container');
-      const loadingDiv = document.getElementById('loading');
-      const outputDiv = document.getElementById('output');
-      const noDataDiv = document.getElementById('no-data');
+        const searchContainer = document.getElementById('search-container');
+        const loadingDiv = document.getElementById('loading');
+        const outputDiv = document.getElementById('output');
+        const noDataDiv = document.getElementById('no-data');
 
-      searchContainer.classList.add('opacity-0');
+        searchContainer.classList.add('opacity-0');
 
-      setTimeout(() => {
-        searchContainer.remove();
-        loadingDiv.classList.remove('hidden');
-      }, 500);
+        setTimeout(() => {
+          searchContainer.remove();
+          loadingDiv.classList.remove('hidden');
+        }, 500);
 
-      try {
-        const response = await fetch(`/api/properties.json?city=${encodeURIComponent(cityInputValue)}&state=${encodeURIComponent(stateInputValue)}`);
-        const data = await response.json();
+        try {
+          const response = await fetch(`/api/properties.json?city=${encodeURIComponent(cityInputValue)}&state=${encodeURIComponent(stateInputValue)}`);
+          const data = await response.json();
 
-        if (response.ok && data.output) {
-          loadingDiv.classList.add('hidden');
-          outputDiv.innerHTML = ''; 
-          const entries = data.output.split('---').map(entry => entry.trim());
+          if (response.ok && data.output) {
+            loadingDiv.classList.add('hidden');
+            outputDiv.innerHTML = ''; 
+            const entries = data.output.split('---').map(entry => entry.trim());
 
-          entries.forEach(entry => {
-            const [title, description] = entry.split('--').map(part => part.trim());
-            const randomImage = images[Math.floor(Math.random() * images.length)];
-            const card = document.createElement('div');
-            card.classList.add('flex', 'items-start', 'bg-white', 'dark:bg-gray-800', 'p-4', 'rounded-lg', 'shadow-md');
+            entries.forEach(entry => {
+              const [title, description] = entry.split('--').map(part => part.trim());
+              const randomImage = images[Math.floor(Math.random() * images.length)];
+              const card = document.createElement('div');
+              card.classList.add('flex', 'items-start', 'bg-white', 'dark:bg-gray-800', 'p-4', 'rounded-lg', 'shadow-md');
 
-            card.innerHTML = `
-              <img src="${randomImage}" alt="Property Image" class="w-[350px] h-[150px] object-cover rounded-lg mr-4" />
-              <div>
-                <h2 class="text-xl font-bold text-gray-900 dark:text-gray-100">${title}</h2>
-                <p class="text-md text-gray-700 dark:text-gray-300 mt-2">${description}</p>
-              </div>
-            `;
-            outputDiv.appendChild(card);
-          });
+              card.innerHTML = `
+                <img src="${randomImage}" alt="Property Image" class="w-[350px] h-[150px] object-cover rounded-lg mr-4" />
+                <div>
+                  <h2 class="text-xl font-bold text-gray-900 dark:text-gray-100">${title}</h2>
+                  <p class="text-md text-gray-700 dark:text-gray-300 mt-2">${description}</p>
+                </div>
+              `;
+              outputDiv.appendChild(card);
+            });
 
-          outputDiv.classList.remove('hidden');
-        } else {
+            outputDiv.classList.remove('hidden');
+          } else {
+            loadingDiv.classList.add('hidden');
+            noDataDiv.classList.remove('hidden');
+            console.error('Error fetching data:', data.error);
+          }
+        } catch (error) {
           loadingDiv.classList.add('hidden');
           noDataDiv.classList.remove('hidden');
-          console.error('Error fetching data:', data.error);
+          console.error('Fetch error:', error);
         }
-      } catch (error) {
-        loadingDiv.classList.add('hidden');
-        noDataDiv.classList.remove('hidden');
-        console.error('Fetch error:', error);
-      }
-    });
-    document.getElementById('map-search').addEventListener('click', function(event) {
-      event.preventDefault();
-      
-      const mapPopup = document.getElementById('map-popup');
-      mapPopup.classList.remove('hidden');
-
-      const map = L.map('map').setView([51.505, -0.09], 13);
-      
-      L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-        maxZoom: 19,
-        attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
-      }).addTo(map);
-      
-      const searchInput = document.getElementById('map-search-input');
-      const searchControl = L.Control.geocoder({
-        defaultMarkGeocode: false
-      })
-      .on('markgeocode', function(e) {
-        const bbox = e.geocode.bbox;
-        const poly = L.polygon([
-          bbox.getSouthEast(),
-          bbox.getNorthEast(),
-          bbox.getNorthWest(),
-          bbox.getSouthWest()
-        ]).addTo(map);
-        map.fitBounds(poly.getBounds());
-      })
-      .addTo(map);
-
-      searchInput.addEventListener('change', function() {
-        searchControl.geocode(searchInput.value);
       });
 
-      let selectedRegion = null;
-      
-      map.on('click', function(e) {
-        if (selectedRegion) {
-          selectedRegion.remove();
-        }
-        selectedRegion = L.circle(e.latlng, { radius: 500 }).addTo(map);
-      });
+      document.getElementById('map-search').addEventListener('click', function(event) {
+        event.preventDefault();
 
-      document.getElementById('submit-region').addEventListener('click', function() {
-        if (selectedRegion) {
-          const regionData = selectedRegion.getLatLng();
-          const regionString = `Latitude: ${regionData.lat}, Longitude: ${regionData.lng}`;
-          document.getElementById('city-input').value = regionString;
+        const mapPopup = document.getElementById('map-popup');
+        mapPopup.classList.remove('hidden');
+
+        const map = L.map('map').setView([51.505, -0.09], 13);
+
+        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+          maxZoom: 19,
+          attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+        }).addTo(map);
+
+        const searchInput = document.getElementById('map-search-input');
+        const searchControl = L.Control.geocoder({
+          defaultMarkGeocode: false
+        })
+        .on('markgeocode', function(e) {
+          const bbox = e.geocode.bbox;
+          const poly = L.polygon([
+            bbox.getSouthEast(),
+            bbox.getNorthEast(),
+            bbox.getNorthWest(),
+            bbox.getSouthWest()
+          ]).addTo(map);
+          map.fitBounds(poly.getBounds());
+        })
+        .addTo(map);
+
+        searchInput.addEventListener('change', function() {
+          searchControl.geocode(searchInput.value);
+        });
+
+        let selectedRegion = null;
+
+        map.on('click', function(e) {
+          if (selectedRegion) {
+            selectedRegion.remove();
+          }
+          selectedRegion = L.circle(e.latlng, { radius: 500 }).addTo(map);
+        });
+
+        document.getElementById('submit-region').addEventListener('click', function() {
+          if (selectedRegion) {
+            const regionData = selectedRegion.getLatLng();
+            const regionString = `Latitude: ${regionData.lat}, Longitude: ${regionData.lng}`;
+            document.getElementById('city-input').value = regionString;
+            mapPopup.classList.add('hidden');
+          } else {
+            alert('Please select a region on the map.');
+          }
+        });
+
+        document.getElementById('close-map').addEventListener('click', function() {
           mapPopup.classList.add('hidden');
-        } else {
-          alert('Please select a region on the map.');
-        }
+        });
       });
+    };
 
-      document.getElementById('close-map').addEventListener('click', function() {
-        mapPopup.classList.add('hidden');
-      });
-    });
+    document.head.appendChild(leafletScript);
   </script>
 </Layout>
