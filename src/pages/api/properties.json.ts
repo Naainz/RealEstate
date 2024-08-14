@@ -1,48 +1,43 @@
 import type { APIRoute } from 'astro';
 
 export const GET: APIRoute = async ({ url }) => {
-  const location = url.searchParams.get('location');
-  const apiKey = import.meta.env.REALTY_MOLE_API_KEY;
+  const city = url.searchParams.get('city');
+  const state = url.searchParams.get('state');
+  const apiKey = import.meta.env.OPENAI_API_KEY;
 
-  if (!location || location.trim() === '') {
-    return new Response(JSON.stringify({ error: 'Missing location parameter' }), {
+  if (!city || !state) {
+    return new Response(JSON.stringify({ error: 'Missing city or state parameter' }), {
       status: 400,
       headers: { 'Content-Type': 'application/json' },
     });
   }
 
-  const requestUrl = `https://realty-mole-property-api.p.rapidapi.com/rentalListings?location=${encodeURIComponent(location)}`;
-  console.log('Request URL:', requestUrl);
+  const prompt = `Generate 3 street names with property descriptions in ${city}, ${state}. The output should be formatted as 'Title -- Description'. Separate each entry with '---'.`;
 
   try {
-    const response = await fetch(requestUrl, {
-      method: 'GET',
+    const response = await fetch('https://api.openai.com/v1/chat/completions', {
+      method: 'POST',
       headers: {
-        'X-RapidAPI-Host': 'realty-mole-property-api.p.rapidapi.com',
-        'X-RapidAPI-Key': apiKey,
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${apiKey}`,
       },
+      body: JSON.stringify({
+        model: 'gpt-4o-mini',
+        messages: [
+          { role: 'system', content: 'You are a helpful assistant.' },
+          { role: 'user', content: prompt },
+        ],
+      }),
     });
 
     if (!response.ok) {
-      throw new Error(`Failed to fetch property data: ${response.statusText}`);
+      throw new Error(`Failed to fetch data: ${response.statusText}`);
     }
 
     const data = await response.json();
-    if (!data.length) {
-      return new Response(JSON.stringify({ error: 'No rental properties found.' }), {
-        status: 404,
-        headers: { 'Content-Type': 'application/json' },
-      });
-    }
+    const generatedText = data.choices[0].message.content;
 
-    const listings = data.map((rental: any) => ({
-      title: rental.address,
-      description: `Estimated Rent: $${rental.price} per month`,
-      image: rental.image || 'https://via.placeholder.com/150',
-      link: `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(rental.address)}`,
-    }));
-
-    return new Response(JSON.stringify({ listings }), {
+    return new Response(JSON.stringify({ output: generatedText }), {
       status: 200,
       headers: { 'Content-Type': 'application/json' },
     });

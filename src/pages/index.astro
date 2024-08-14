@@ -1,84 +1,80 @@
 ---
 import Layout from '../layouts/Layout.astro';
 
-let properties: any[] = [];
+let outputText = ''; 
 let hasSearched = false;
 ---
 
 <Layout>
   <section class="py-8 px-4 flex justify-center">
     <div id="search-container" class="bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 p-6 rounded-lg shadow-md w-full max-w-3xl text-center transition-opacity duration-500">
-      <h1 class="text-3xl font-bold mb-4">Find Your Dream Rental Property</h1>
-      <p class="text-lg text-gray-700 dark:text-gray-300 mb-4">Search from a variety of rental properties available across different locations. Enter a location below to get started.</p>
+      <h1 class="text-3xl font-bold mb-4">Generate Property Data</h1>
+      <p class="text-lg text-gray-700 dark:text-gray-300 mb-4">Enter a city and state below to generate property descriptions using AI.</p>
       
       <form id="search-form" class="search-form flex justify-center gap-4 mb-1">
         <input 
           type="text" 
-          id="location-input" 
-          placeholder="Enter location" 
+          id="city-input" 
+          placeholder="Enter city" 
           required 
           class="px-4 py-2 border rounded w-full bg-gray-200 dark:bg-gray-700 border-gray-300 dark:border-gray-600 text-gray-900 dark:text-gray-100" 
         />
-        <button type="submit" class="bg-blue-600 text-white px-4 py-2 rounded">Search</button>
+        <input 
+          type="text" 
+          id="state-input" 
+          placeholder="Enter state" 
+          required 
+          class="px-4 py-2 border rounded w-full bg-gray-200 dark:bg-gray-700 border-gray-300 dark:border-gray-600 text-gray-900 dark:text-gray-100" 
+        />
+        <button type="submit" class="bg-blue-600 text-white px-4 py-2 rounded">Generate</button>
       </form>
-
-      <p class="text-sm text-gray-500 dark:text-gray-400 mt-3">...or try a map search</p>
     </div>
 
     <div id="loading" class="hidden flex flex-col items-center justify-center text-center mt-8 transition-all duration-500">
       <i class="fas fa-spinner fa-spin text-4xl text-blue-500"></i>
-      <p class="mt-4 text-xl transition-opacity duration-500" id="loading-text">Fetching rental properties...</p>
+      <p class="mt-4 text-xl transition-opacity duration-500" id="loading-text">Generating property data...</p>
     </div>
     
-    {hasSearched && properties.length > 0 && (
-      <div class="grid grid-cols-1 gap-6 mt-8">
-        {properties.map(property => (
-          <a href={property.link} class="flex items-center bg-white dark:bg-gray-800 p-4 rounded-lg shadow-md transition-transform transform hover:scale-105">
-            <img src={property.image} alt={property.title} class="w-1/3 h-auto object-cover rounded-lg" />
-            <div class="ml-4">
-              <h2 class="text-xl font-bold text-gray-900 dark:text-gray-100">{property.title}</h2>
-              <p class="text-md text-gray-700 dark:text-gray-300 mt-2">{property.description}</p>
-            </div>
-          </a>
-        ))}
+    {hasSearched && (
+      <div class="mt-8">
+        <pre class="whitespace-pre-wrap bg-gray-100 dark:bg-gray-700 p-4 rounded">{outputText}</pre>
       </div>
     )}
 
-    {hasSearched && properties.length === 0 && (
-      <p class="text-center text-gray-600 dark:text-gray-400 mt-8">No rental properties found for your search.</p>
+    {hasSearched && outputText === '' && (
+      <p class="text-center text-gray-600 dark:text-gray-400 mt-8">No data generated for your search.</p>
     )}
   </section>
 
   <script>
-    let isLoading = false;
     let hasSearched = false;
-	let properties = [];
 
-    async function fetchProperties(location) {
-      isLoading = true;
+    async function fetchGeneratedData(city, state) {
       try {
-        const response = await fetch(`/api/properties.json?location=${encodeURIComponent(location)}`);
+        const response = await fetch(`/api/properties.json?city=${encodeURIComponent(city)}&state=${encodeURIComponent(state)}`);
         const data = await response.json();
 
         if (response.ok) {
-		properties = data.listings || [];
+          outputText = data.output || 'No data generated.';
         } else {
-          console.error('Error fetching properties:', data.error);
+          console.error('Error fetching data:', data.error);
         }
       } catch (error) {
         console.error('Fetch error:', error);
+        outputText = 'Error fetching data.';
       } finally {
-        isLoading = false;
         hasSearched = true;
+        document.querySelector('pre').textContent = outputText;
       }
     }
 
     document.getElementById('search-form').addEventListener('submit', async (event) => {
       event.preventDefault();
-      const locationInputValue = document.getElementById('location-input').value;
+      const cityInputValue = document.getElementById('city-input').value;
+      const stateInputValue = document.getElementById('state-input').value;
 
-      if (!locationInputValue) {
-        console.error("Location input is empty");
+      if (!cityInputValue || !stateInputValue) {
+        console.error("City or state input is empty");
         return;
       }
 
@@ -90,7 +86,7 @@ let hasSearched = false;
       setTimeout(() => {
         searchContainer.remove();
         loadingDiv.classList.remove('hidden');
-        fetchProperties(locationInputValue);
+        fetchGeneratedData(cityInputValue, stateInputValue);
       }, 500);
     });
   </script>
