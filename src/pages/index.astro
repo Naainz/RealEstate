@@ -32,7 +32,7 @@ import Layout from '../layouts/Layout.astro';
       <p class="mt-4 text-xl transition-opacity duration-500" id="loading-text">Generating property data...</p>
     </div>
     
-    <div id="output" class="mt-8"></div>
+    <div id="output" class="mt-8 grid grid-cols-1 gap-6"></div>
 
     <div id="no-data" class="hidden text-center text-gray-600 dark:text-gray-400 mt-8">No data generated for your search.</div>
   </section>
@@ -66,7 +66,24 @@ import Layout from '../layouts/Layout.astro';
 
         if (response.ok && data.output) {
           loadingDiv.classList.add('hidden');
-          outputDiv.textContent = data.output;
+          outputDiv.innerHTML = ''; // Clear previous content
+          const entries = data.output.split('---').map(entry => entry.trim());
+
+          entries.forEach(entry => {
+            const [title, description] = entry.split('--').map(part => part.trim());
+            const card = document.createElement('div');
+            card.classList.add('flex', 'items-start', 'bg-white', 'dark:bg-gray-800', 'p-4', 'rounded-lg', 'shadow-md');
+
+            card.innerHTML = `
+              <img src="https://via.placeholder.com/350x150" alt="Placeholder Image" class="w-[350px] h-[150px] object-cover rounded-lg mr-4" />
+              <div>
+                <h2 class="text-xl font-bold text-gray-900 dark:text-gray-100">${title}</h2>
+                <p class="text-md text-gray-700 dark:text-gray-300 mt-2">${description}</p>
+              </div>
+            `;
+            outputDiv.appendChild(card);
+          });
+
           outputDiv.classList.remove('hidden');
         } else {
           loadingDiv.classList.add('hidden');
