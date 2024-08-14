@@ -2,16 +2,7 @@
 import Layout from '../layouts/Layout.astro';
 
 let properties = [];
-let hasSearched = false;
-let isLoading = false;
-let locationInputValue = ''; // Ensure this is globally accessible
-
-async function fetchProperties(location) {
-  isLoading = true;
-  properties = [];
-  hasSearched = true;
-  return properties;
-}
+let hasSearched = false; // Ensure this is defined globally
 ---
 
 <Layout>
@@ -36,21 +27,41 @@ async function fetchProperties(location) {
 
     <div id="loading" class="hidden flex flex-col items-center justify-center text-center mt-8 transition-all duration-500">
       <i class="fas fa-spinner fa-spin text-4xl text-blue-500"></i>
-      <p class="mt-4 text-xl transition-opacity duration-500" id="loading-text"></p>
-      <div id="action-buttons" class="mt-4 flex justify-center gap-4">
-        <button id="rent-button" class="bg-green-500 text-white px-4 py-2 rounded">Rent</button>
-        <button id="buy-button" class="bg-blue-600 text-white px-4 py-2 rounded">Buy</button>
-      </div>
+      <p class="mt-4 text-xl transition-opacity duration-500" id="loading-text">Fetching rental properties...</p>
     </div>
   </section>
 
   <script>
-    // Ensure locationInputValue is correctly assigned
-    let locationInputValue = ''; // Declare it here for global access
+    let isLoading = false;
+    let hasSearched = false;
+
+    async function fetchProperties(location) {
+      isLoading = true;
+      try {
+        const response = await fetch(`/api/properties.json?location=${encodeURIComponent(location)}`);
+        const data = await response.json();
+
+        if (response.ok) {
+          properties = data.listings || [];
+        } else {
+          console.error('Error fetching properties:', data.error);
+        }
+      } catch (error) {
+        console.error('Fetch error:', error);
+      } finally {
+        isLoading = false;
+        hasSearched = true; // Ensure hasSearched is set to true after the fetch is complete
+      }
+    }
 
     document.getElementById('search-form').addEventListener('submit', async (event) => {
       event.preventDefault();
-      locationInputValue = document.getElementById('location-input').value; // Assign the value
+      const locationInputValue = document.getElementById('location-input').value;
+
+      if (!locationInputValue) {
+        console.error("Location input is empty");
+        return;
+      }
 
       const searchContainer = document.getElementById('search-container');
       const loadingDiv = document.getElementById('loading');
@@ -62,37 +73,8 @@ async function fetchProperties(location) {
       setTimeout(() => {
         searchContainer.remove();
         loadingDiv.classList.remove('hidden');
-        document.getElementById('loading-text').textContent = `You are looking for a property in ${locationInputValue}. Would you like to rent or buy?`;
+        fetchProperties(locationInputValue); // Make the API request after the transition
       }, 500);
-
-      await fetchProperties(locationInputValue);
-      isLoading = false;
     });
-
-    document.getElementById('rent-button').addEventListener('click', () => {
-      updateMessage('rent');
-    });
-
-    document.getElementById('buy-button').addEventListener('click', () => {
-      updateMessage('buy');
-    });
-
-    function updateMessage(action) {
-      const loadingText = document.getElementById('loading-text');
-      const actionButtons = document.getElementById('action-buttons');
-
-      // Hide buttons with a transition
-      actionButtons.classList.add('opacity-0');
-      setTimeout(() => {
-        actionButtons.classList.add('hidden');
-      }, 500);
-
-      // Update the message with a transition
-      loadingText.classList.add('opacity-0');
-      setTimeout(() => {
-        loadingText.textContent = `You are looking to ${action} a property in ${locationInputValue}.`;
-        loadingText.classList.remove('opacity-0');
-      }, 500);
-    }
   </script>
 </Layout>
