@@ -66,7 +66,7 @@ import Layout from '../layouts/Layout.astro';
 
         if (response.ok && data.output) {
           loadingDiv.classList.add('hidden');
-          outputDiv.innerHTML = ''; // Clear previous content
+          outputDiv.innerHTML = ''; 
           const entries = data.output.split('---').map(entry => entry.trim());
 
           entries.forEach(entry => {
