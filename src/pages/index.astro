@@ -4,7 +4,7 @@ import Layout from '../layouts/Layout.astro';
 let properties = [];
 let hasSearched = false;
 let isLoading = false;
-let location = '';
+let locationInputValue = ''; // Ensure this is globally accessible
 
 async function fetchProperties(location) {
   isLoading = true;
@@ -36,32 +36,63 @@ async function fetchProperties(location) {
 
     <div id="loading" class="hidden flex flex-col items-center justify-center text-center mt-8 transition-all duration-500">
       <i class="fas fa-spinner fa-spin text-4xl text-blue-500"></i>
-      <p class="mt-4 text-xl" id="loading-text"></p>
-      <div class="mt-4 flex justify-center gap-4">
-        <button class="bg-green-500 text-white px-4 py-2 rounded">Rent</button>
-        <button class="bg-blue-600 text-white px-4 py-2 rounded">Buy</button>
+      <p class="mt-4 text-xl transition-opacity duration-500" id="loading-text"></p>
+      <div id="action-buttons" class="mt-4 flex justify-center gap-4">
+        <button id="rent-button" class="bg-green-500 text-white px-4 py-2 rounded">Rent</button>
+        <button id="buy-button" class="bg-blue-600 text-white px-4 py-2 rounded">Buy</button>
       </div>
     </div>
   </section>
 
   <script>
+    // Ensure locationInputValue is correctly assigned
+    let locationInputValue = ''; // Declare it here for global access
+
     document.getElementById('search-form').addEventListener('submit', async (event) => {
       event.preventDefault();
-      const locationInput = document.getElementById('location-input').value;
-      
+      locationInputValue = document.getElementById('location-input').value; // Assign the value
+
       const searchContainer = document.getElementById('search-container');
       const loadingDiv = document.getElementById('loading');
-      
+
+      // Start the fade-out transition
       searchContainer.classList.add('opacity-0');
 
+      // Wait for the transition to complete before removing the container and showing the loading screen
       setTimeout(() => {
         searchContainer.remove();
         loadingDiv.classList.remove('hidden');
-        document.getElementById('loading-text').textContent = `You are looking for a property in ${locationInput}. Would you like to rent or buy?`;
-      }, 500); // Match the duration of the transition
+        document.getElementById('loading-text').textContent = `You are looking for a property in ${locationInputValue}. Would you like to rent or buy?`;
+      }, 500);
 
-      await fetchProperties(locationInput);
+      await fetchProperties(locationInputValue);
       isLoading = false;
     });
+
+    document.getElementById('rent-button').addEventListener('click', () => {
+      updateMessage('rent');
+    });
+
+    document.getElementById('buy-button').addEventListener('click', () => {
+      updateMessage('buy');
+    });
+
+    function updateMessage(action) {
+      const loadingText = document.getElementById('loading-text');
+      const actionButtons = document.getElementById('action-buttons');
+
+      // Hide buttons with a transition
+      actionButtons.classList.add('opacity-0');
+      setTimeout(() => {
+        actionButtons.classList.add('hidden');
+      }, 500);
+
+      // Update the message with a transition
+      loadingText.classList.add('opacity-0');
+      setTimeout(() => {
+        loadingText.textContent = `You are looking to ${action} a property in ${locationInputValue}.`;
+        loadingText.classList.remove('opacity-0');
+      }, 500);
+    }
   </script>
 </Layout>
