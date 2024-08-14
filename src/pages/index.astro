@@ -38,6 +38,25 @@ import Layout from '../layouts/Layout.astro';
   </section>
 
   <script>
+    const images = [
+      "https://page-assets.foxtons.co.uk/img/masthead/interiors_kitchen.jpg",
+      "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcRJcX2nqVi4Cx5MIP78R0RsdNWVgHPlbqXYUA&s",
+      "https://images.adsttc.com/media/images/5cde/9f86/284d/d164/0900/0043/newsletter/012.jpg?1558093648",
+      "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcS5kdUsk78YijC9OnlMNzKLKJr7ANpmHPgiIw&s",
+      "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcR_Vm0rIbuWfFTNtJIg1ba69iQsjJldiCDHFw&s",
+      "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQ8lkFpe5CAfbW0w6Ok4_NQgh5h-cquHn1VqQ&s",
+      "https://www.home-designing.com/wp-content/uploads/2013/06/modern-neutral-living-room-4.jpg",
+      "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTb5I5x3QKYqGyarofDQmhpYmQyRPyGws-2og&s",
+      "https://cdn.shopify.com/s/files/1/2527/1508/files/Property_Styling_-_12-2.jpg?v=1692590413",
+      "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTRilfSJXZY4McaRARD-3qRmGvCEh_dk4n_dA&s",
+      "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcT5z9ewjHobvjeS_WGHJ_newgA21lGJuA2APQ&s",
+      "https://page-assets.foxtons.co.uk/news-images/2018/03/best-family-homes-1/720.jpg",
+      "https://page-assets.foxtons.co.uk/news-images/2018/03/best-family-homes-9/720.jpg",
+      "https://page-assets.foxtons.co.uk/news-images/2018/03/best-family-homes-1/720.jpg",
+      "https://cloudfront-eu-central-1.images.arcpublishing.com/irishtimes/T5IANN2EPM2A4TVMFATVTYWMIY.jpg",
+      "https://justdoproperty.co.uk/wp-content/uploads/2020/05/interiordesign.png"
+    ];
+
     document.getElementById('search-form').addEventListener('submit', async (event) => {
       event.preventDefault();
       const cityInputValue = document.getElementById('city-input').value;
@@ -66,16 +85,17 @@ import Layout from '../layouts/Layout.astro';
 
         if (response.ok && data.output) {
           loadingDiv.classList.add('hidden');
-          outputDiv.innerHTML = ''; 
+          outputDiv.innerHTML = ''; // Clear previous content
           const entries = data.output.split('---').map(entry => entry.trim());
 
           entries.forEach(entry => {
             const [title, description] = entry.split('--').map(part => part.trim());
+            const randomImage = images[Math.floor(Math.random() * images.length)];
             const card = document.createElement('div');
             card.classList.add('flex', 'items-start', 'bg-white', 'dark:bg-gray-800', 'p-4', 'rounded-lg', 'shadow-md');
 
             card.innerHTML = `
-              <img src="https://via.placeholder.com/350x150" alt="Placeholder Image" class="w-[350px] h-[150px] object-cover rounded-lg mr-4" />
+              <img src="${randomImage}" alt="Property Image" class="w-[350px] h-[150px] object-cover rounded-lg mr-4" />
               <div>
                 <h2 class="text-xl font-bold text-gray-900 dark:text-gray-100">${title}</h2>
                 <p class="text-md text-gray-700 dark:text-gray-300 mt-2">${description}</p>
