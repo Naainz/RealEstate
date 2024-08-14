@@ -25,6 +25,10 @@ import Layout from '../layouts/Layout.astro';
         />
         <button type="submit" class="bg-blue-600 text-white px-4 py-2 rounded">Generate</button>
       </form>
+
+      <p class="text-sm text-gray-500 dark:text-gray-400 mt-3">
+        ...or you can <a href="#" id="map-search" class="text-blue-600">map search</a>
+      </p>
     </div>
 
     <div id="loading" class="hidden flex flex-col items-center justify-center text-center mt-8 transition-all duration-500">
@@ -36,6 +40,16 @@ import Layout from '../layouts/Layout.astro';
 
     <div id="no-data" class="hidden text-center text-gray-600 dark:text-gray-400 mt-8">No data generated for your search.</div>
   </section>
+
+  <div id="map-popup" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center hidden">
+    <div class="bg-white dark:bg-gray-800 rounded-lg shadow-lg w-3/4 max-w-4xl p-6 relative">
+      <button id="close-map" class="absolute top-2 right-2 text-gray-600 dark:text-gray-300">&times;</button>
+      <h2 class="text-2xl font-bold mb-4">Select a Region</h2>
+      <input type="text" id="map-search-input" placeholder="Search for a location" class="px-4 py-2 border rounded w-full mb-4" />
+      <div id="map" class="w-full h-96 rounded-lg mb-4"></div>
+      <button id="submit-region" class="bg-blue-600 text-white px-4 py-2 rounded">Generate Based on Region</button>
+    </div>
+  </div>
 
   <script>
     const images = [
@@ -115,6 +129,63 @@ import Layout from '../layouts/Layout.astro';
         noDataDiv.classList.remove('hidden');
         console.error('Fetch error:', error);
       }
+    });
+    document.getElementById('map-search').addEventListener('click', function(event) {
+      event.preventDefault();
+      
+      const mapPopup = document.getElementById('map-popup');
+      mapPopup.classList.remove('hidden');
+
+      const map = L.map('map').setView([51.505, -0.09], 13);
+      
+      L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+        maxZoom: 19,
+        attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+      }).addTo(map);
+      
+      const searchInput = document.getElementById('map-search-input');
+      const searchControl = L.Control.geocoder({
+        defaultMarkGeocode: false
+      })
+      .on('markgeocode', function(e) {
+        const bbox = e.geocode.bbox;
+        const poly = L.polygon([
+          bbox.getSouthEast(),
+          bbox.getNorthEast(),
+          bbox.getNorthWest(),
+          bbox.getSouthWest()
+        ]).addTo(map);
+        map.fitBounds(poly.getBounds());
+      })
+      .addTo(map);
+
+      searchInput.addEventListener('change', function() {
+        searchControl.geocode(searchInput.value);
+      });
+
+      let selectedRegion = null;
+      
+      map.on('click', function(e) {
+        if (selectedRegion) {
+          selectedRegion.remove();
+        }
+        selectedRegion = L.circle(e.latlng, { radius: 500 }).addTo(map);
+      });
+
+      document.getElementById('submit-region').addEventListener('click', function() {
+        if (selectedRegion) {
+          const regionData = selectedRegion.getLatLng();
+          const regionString = `Latitude: ${regionData.lat}, Longitude: ${regionData.lng}`;
+          document.getElementById('city-input').value = regionString;
+          mapPopup.classList.add('hidden');
+        } else {
+          alert('Please select a region on the map.');
+        }
+      });
+
+      document.getElementById('close-map').addEventListener('click', function() {
+        mapPopup.classList.add('hidden');
+      });
     });
   </script>
 </Layout>
