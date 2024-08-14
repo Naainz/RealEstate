@@ -1,8 +1,5 @@
 ---
 import Layout from '../layouts/Layout.astro';
-
-let outputText = ''; 
-let hasSearched = false;
 ---
 
 <Layout>
@@ -35,39 +32,12 @@ let hasSearched = false;
       <p class="mt-4 text-xl transition-opacity duration-500" id="loading-text">Generating property data...</p>
     </div>
     
-    {hasSearched && (
-      <div class="mt-8">
-        <pre class="whitespace-pre-wrap bg-gray-100 dark:bg-gray-700 p-4 rounded">{outputText}</pre>
-      </div>
-    )}
+    <div id="output" class="mt-8"></div>
 
-    {hasSearched && outputText === '' && (
-      <p class="text-center text-gray-600 dark:text-gray-400 mt-8">No data generated for your search.</p>
-    )}
+    <div id="no-data" class="hidden text-center text-gray-600 dark:text-gray-400 mt-8">No data generated for your search.</div>
   </section>
 
   <script>
-    let hasSearched = false;
-
-    async function fetchGeneratedData(city, state) {
-      try {
-        const response = await fetch(`/api/properties.json?city=${encodeURIComponent(city)}&state=${encodeURIComponent(state)}`);
-        const data = await response.json();
-
-        if (response.ok) {
-          outputText = data.output || 'No data generated.';
-        } else {
-          console.error('Error fetching data:', data.error);
-        }
-      } catch (error) {
-        console.error('Fetch error:', error);
-        outputText = 'Error fetching data.';
-      } finally {
-        hasSearched = true;
-        document.querySelector('pre').textContent = outputText;
-      }
-    }
-
     document.getElementById('search-form').addEventListener('submit', async (event) => {
       event.preventDefault();
       const cityInputValue = document.getElementById('city-input').value;
@@ -80,14 +50,34 @@ let hasSearched = false;
 
       const searchContainer = document.getElementById('search-container');
       const loadingDiv = document.getElementById('loading');
+      const outputDiv = document.getElementById('output');
+      const noDataDiv = document.getElementById('no-data');
 
       searchContainer.classList.add('opacity-0');
 
       setTimeout(() => {
         searchContainer.remove();
         loadingDiv.classList.remove('hidden');
-        fetchGeneratedData(cityInputValue, stateInputValue);
       }, 500);
+
+      try {
+        const response = await fetch(`/api/properties.json?city=${encodeURIComponent(cityInputValue)}&state=${encodeURIComponent(stateInputValue)}`);
+        const data = await response.json();
+
+        if (response.ok && data.output) {
+          loadingDiv.classList.add('hidden');
+          outputDiv.textContent = data.output;
+          outputDiv.classList.remove('hidden');
+        } else {
+          loadingDiv.classList.add('hidden');
+          noDataDiv.classList.remove('hidden');
+          console.error('Error fetching data:', data.error);
+        }
+      } catch (error) {
+        loadingDiv.classList.add('hidden');
+        noDataDiv.classList.remove('hidden');
+        console.error('Fetch error:', error);
+      }
     });
   </script>
 </Layout>
