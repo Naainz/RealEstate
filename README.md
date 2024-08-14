@@ -1,59 +1,80 @@
-<<<<<<< HEAD
-# RealEstate
-Search for properties and get loads of information!
-=======
-# Astro Starter Kit: Basics
+# Real Estate Property Data Generator
 
-```sh
-npm create astro@latest -- --template basics
-```
+This project is a real estate property data generator that integrates a map search feature using Leaflet.js. Users can enter a city and state to generate property descriptions or use a map search to select a region, and the app will generate descriptions based on that selection.
 
-[![Open in StackBlitz](https://developer.stackblitz.com/img/open_in_stackblitz.svg)](https://stackblitz.com/github/withastro/astro/tree/latest/examples/basics)
-[![Open with CodeSandbox](https://assets.codesandbox.io/github/button-edit-lime.svg)](https://codesandbox.io/p/sandbox/github/withastro/astro/tree/latest/examples/basics)
-[![Open in GitHub Codespaces](https://github.com/codespaces/badge.svg)](https://codespaces.new/withastro/astro?devcontainer_path=.devcontainer/basics/devcontainer.json)
+## Features
 
-> 🧑‍🚀 **Seasoned astronaut?** Delete this file. Have fun!
+- **City and State Input**: Users can enter a city and state to generate property descriptions using AI.
+- **Map Search**: Users can click on a map to select a region for generating property data.
+- **Geocoding**: Users can search for specific locations on the map, which will center the map and allow for region selection.
+- **Property Data Display**: The generated property data is displayed as cards with images and descriptions.
 
-![just-the-basics](https://github.com/withastro/astro/assets/2244813/a0a5533c-a856-4198-8470-2d67b1d7c554)
+## Project Structure
 
-## 🚀 Project Structure
+- src/
+  - layouts/
+    - Layout.astro
+  - pages/
+    - index.astro
+  - styles/
+    - global.css
+  - scripts/
+    - theme.js
+  - api/
+    - properties.json.ts
 
-Inside of your Astro project, you'll see the following folders and files:
+## Layout File
 
-```text
-/
-├── public/
-│   └── favicon.svg
-├── src/
-│   ├── components/
-│   │   └── Card.astro
-│   ├── layouts/
-│   │   └── Layout.astro
-│   └── pages/
-│       └── index.astro
-└── package.json
-```
+### src/layouts/Layout.astro
 
-Astro looks for `.astro` or `.md` files in the `src/pages/` directory. Each page is exposed as a route based on its file name.
+The layout file includes the basic HTML structure for the application, including global styles and navigation.
 
-There's nothing special about `src/components/`, but that's where we like to put any Astro/React/Vue/Svelte/Preact components.
+## Main Page
 
-Any static assets, like images, can be placed in the `public/` directory.
+### src/pages/index.astro
 
-## 🧞 Commands
+This is the main file that handles the property search form, map popup, and display of generated property data.
 
-All commands are run from the root of the project, from a terminal:
+- **Form Input**: The form allows users to input a city and state.
+- **Map Search**: Includes a "map search" link that opens a map popup where users can select a region.
+- **Property Display**: Displays the generated property data as cards with images and descriptions.
 
-| Command                   | Action                                           |
-| :------------------------ | :----------------------------------------------- |
-| `npm install`             | Installs dependencies                            |
-| `npm run dev`             | Starts local dev server at `localhost:4321`      |
-| `npm run build`           | Build your production site to `./dist/`          |
-| `npm run preview`         | Preview your build locally, before deploying     |
-| `npm run astro ...`       | Run CLI commands like `astro add`, `astro check` |
-| `npm run astro -- --help` | Get help using the Astro CLI                     |
+## Global Styles
 
-## 👀 Want to learn more?
+### src/styles/global.css
 
-Feel free to check [our documentation](https://docs.astro.build) or jump into our [Discord server](https://astro.build/chat).
->>>>>>> master
+This file includes global styles for the project, handling things like font styles, colors, and layout adjustments.
+
+## Theme Script
+
+### src/scripts/theme.js
+
+This script manages theme toggling between light and dark modes.
+
+## API for Property Data
+
+### src/api/properties.json.ts
+
+This file handles requests to generate property data using AI and returns the data in JSON format.
+
+## Installation and Usage
+
+1. Clone the repository.
+2. Install the dependencies using `npm install`.
+3. Start the development server using `npm start`.
+4. Open your browser and navigate to `http://localhost:4321` to use the application.
+
+## Map Search Integration
+
+The project uses Leaflet.js for map functionalities and Leaflet Control Geocoder for geocoding.
+
+1. When the "map search" link is clicked, a popup with a map is displayed, allowing users to select a region.
+2. The selected region's coordinates are used to generate property data when the "Generate Based on Region" button is clicked.
+
+## Conclusion
+
+This project demonstrates how to integrate a map-based search feature into a real estate property data generator, offering users an interactive way to search for properties.
+
+## License
+
+This project is licensed under the [MIT License](LICENSE).
